@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.env
+*.png
+*.svg
+!assets/*.png
+!assets/*.svg

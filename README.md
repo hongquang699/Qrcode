@@ -1,39 +1,92 @@
-# 📱 QR Code Generator
+# 📱 Modern QR Code Generator
 
-A fast, lightweight, and ISO/IEC 18004 standard-compliant QR Code generator for Windows.
+A lightweight, zero-configuration desktop application and command-line tool to generate standard, high-resolution QR codes from any website link or text.
+
+Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable** on all iOS, Android, and camera devices.
 
 ---
 
-## ⚡ Quick Start (1-Click Run)
+## ✨ Features
 
-Just double-click the batch file:
+- 🖱️ **1-Click Launch**: Instant desktop launch via `run.bat` (no terminal commands needed).
+- 🖥️ **Modern Desktop GUI**: Clean interface with instant live preview.
+- 📋 **Clipboard Integration**: Quick-paste links with the built-in Paste button or `Ctrl + V`.
+- 🎨 **Color Customization**: Customize foreground and background colors with a visual color picker.
+- 📦 **Multiple Export Formats**:
+  - **PNG**: Crisp raster image for web and printing.
+  - **SVG**: Infinite-resolution vector format for design and large-scale printing.
+- ⚡ **CLI & Scripting Support**: Generate QR codes programmatically or interactively in the terminal.
+- 🛡️ **Self-Contained**: Pre-bundled standard engine — works out of the box without complex dependencies.
+
+---
+
+## 🚀 Getting Started
+
+### Method 1: 1-Click Desktop App (Recommended)
+
+Simply double-click:
 
 👉 [**`run.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run.bat)
 
-- Automatically opens the **Desktop GUI**.
-- Paste link (`Ctrl + V` or click **Paste** button).
-- Click **GENERATE QR CODE** to preview.
-- Click **Save PNG / SVG** to download the high-resolution QR image.
+1. Paste your website URL into the input field.
+2. *(Optional)* Pick custom foreground/background colors.
+3. Click **⚡ GENERATE QR CODE** to see the live preview.
+4. Click **💾 Save PNG / SVG** to export your QR code.
 
 ---
 
-## 🚀 Command Line Usage (CLI)
+### Method 2: Command Line Interface (CLI)
 
-### 1. Interactive Prompt Mode:
+#### 1. Interactive Mode
+Run the script without arguments to start the step-by-step wizard:
 ```bash
 python generate_qr.py
 ```
 
-### 2. Single-line Command:
+#### 2. Direct Command Mode
+Generate QR codes in a single command with customizable options:
+
 ```bash
 # Basic QR code
-python generate_qr.py "https://google.com" -o "google.png"
+python generate_qr.py "https://example.com" -o "my_qr.png"
 
-# Custom colors and size
-python generate_qr.py "https://github.com" -o "github.png" --fg "#2563eb" --bg "#ffffff" --size 12
+# Vector SVG output
+python generate_qr.py "https://example.com" -o "vector_qr.svg"
+
+# Custom colors and module size
+python generate_qr.py "https://github.com" -o "github_qr.png" --fg "#2563eb" --bg "#ffffff" --size 12 --border 4
 ```
 
-### 3. Open Desktop GUI directly:
-```bash
-python app_gui.py
+---
+
+## 🛠️ CLI Options Reference
+
+| Flag | Full Option | Default | Description |
+| :--- | :--- | :--- | :--- |
+| `url` | *(positional)* | *None* | Website URL or text content to encode |
+| `-o` | `--output` | `qrcode.png` | Output file path (`.png` or `.svg`) |
+| | `--size` | `10` | Pixel size of each QR code box |
+| | `--border` | `4` | Border margin width (in boxes) |
+| | `--fg` | `black` | Foreground color (name or Hex like `#2563eb`) |
+| | `--bg` | `white` | Background color (name or Hex like `#ffffff`) |
+| `-h` | `--help` | | Show help message and exit |
+
+---
+
+## 📂 Project Structure
+
+```text
+QRcode/
+├── run.bat            # 1-Click launcher for Windows
+├── app_gui.py         # Tkinter Desktop GUI application
+├── generate_qr.py     # CLI and core QR generator script
+├── qrcode/            # Bundled ISO/IEC standard QR engine
+├── requirements.txt   # Dependencies list
+└── README.md          # Project documentation
 ```
+
+---
+
+## 📄 License
+
+Open-source and free to use for personal or commercial projects.
