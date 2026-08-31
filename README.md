@@ -16,7 +16,7 @@ Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable
   - **PNG**: Crisp raster image for web and printing.
   - **SVG**: Infinite-resolution vector format for design and large-scale printing.
 - ⚡ **CLI & Scripting Support**: Generate QR codes programmatically or interactively in the terminal.
-- 🔄 **GitHub Synchronization**: Built-in automated and manual code backup service.
+- 🔄 **1-Click GitHub Sync**: Push & backup code to GitHub with [**`run_push.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run_push.bat).
 - 🛡️ **Self-Contained**: Pre-bundled standard engine — works out of the box without complex dependencies.
 
 ---
@@ -60,12 +60,11 @@ python generate_qr.py "https://github.com" -o "github_qr.png" --fg "#2563eb" --b
 
 ---
 
-## 🔄 GitHub Synchronization Service
+## 🔄 1-Click GitHub Synchronization
 
-To manually synchronize all changes to your GitHub repository:
-```bash
-python github_service.py "Commit message here"
-```
+To push all changes to GitHub:
+- **Option 1 (1-Click)**: Double-click [**`run_push.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run_push.bat).
+- **Option 2 (CLI)**: Run `python github_service.py "Your commit message"`
 
 Target Repository: `https://github.com/hongquang699/Qrcode.git`
 
@@ -89,7 +88,8 @@ Target Repository: `https://github.com/hongquang699/Qrcode.git`
 
 ```text
 QRcode/
-├── run.bat            # 1-Click launcher for Windows
+├── run.bat            # 1-Click launcher for Desktop GUI
+├── run_push.bat       # 1-Click launcher to Push/Sync code to GitHub
 ├── app_gui.py         # Tkinter Desktop GUI application
 ├── generate_qr.py     # CLI and core QR generator script
 ├── github_service.py  # GitHub automated/manual sync service
