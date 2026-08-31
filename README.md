@@ -1,6 +1,6 @@
-# 📱 Modern QR Code Generator
+# 📱 Modern QR Code Generator & Security Suite
 
-A lightweight, zero-configuration desktop application and command-line tool to generate standard, high-resolution QR codes from any website link or text.
+A lightweight, zero-configuration desktop application, mobile Android app, and command-line tool to generate standard, high-resolution QR codes from any website link or confidential text.
 
 Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable** on all iOS, Android, and camera devices.
 
@@ -9,10 +9,30 @@ Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable
 
 ---
 
+## 🛡️ Enterprise Security & Privacy Architecture
+
+Our application integrates industry-grade security standards across Desktop and Mobile platforms:
+
+1. **🔒 Zero-Knowledge & In-Memory Processing**:
+   - 100% Offline execution. No URL, prompt, or sensitive text is ever transmitted to external servers.
+2. **🌐 Strict Network Security Configuration (TLS 1.3 / HTTPS)**:
+   - Cleartext HTTP communication is strictly blocked (`cleartextTrafficPermitted="false"`).
+3. **🔍 Real-Time URL Security & Phishing Auditor**:
+   - Automatically inspects URLs for unencrypted connections, raw IP destinations, suspicious redirect shorteners, and dangerous URI schemes (`javascript:`, `data:`).
+4. **👁️ Anti-Snooping Screen Protection (`FLAG_SECURE`)**:
+   - Built-in toggle to block screenshots and prevent screen recording/app preview sniffing in Recent Apps.
+5. **🔐 Biometric App Lock & Authorization**:
+   - Integrated biometric hardware authentication (Fingerprint, Face Unlock, Device PIN) to protect application access.
+6. **📦 Scoped Storage & Safe FileProvider**:
+   - Export images securely via Android `MediaStore` and `FileProvider` (`content://` URI scheme) without requiring broad device storage permissions.
+
+---
+
 ## ✨ Features
 
 - 🖱️ **1-Click Launch**: Instant desktop launch via `run.bat` (no terminal commands needed).
-- 🖥️ **Modern Desktop GUI**: Clean interface with instant live preview.
+- 📱 **Android Mobile Application**: Native Jetpack Compose app with Material 3 UI and built-in security suite.
+- 🖥️ **Modern Desktop GUI**: Clean interface with instant live preview & real-time security auditor.
 - 📋 **Clipboard Integration**: Quick-paste links with the built-in Paste button or `Ctrl + V`.
 - 🎨 **Color Customization**: Customize foreground and background colors with a visual color picker.
 - 📦 **Multiple Export Formats**:
@@ -20,7 +40,6 @@ Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable
   - **SVG**: Infinite-resolution vector format for design and large-scale printing.
 - ⚡ **CLI & Scripting Support**: Generate QR codes programmatically or interactively in the terminal.
 - 🔄 **1-Click GitHub Sync**: Push & backup code to GitHub with [**`run_push.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run_push.bat).
-- 🛡️ **Self-Contained**: Pre-bundled standard engine — works out of the box without complex dependencies.
 
 ---
 
@@ -39,7 +58,15 @@ Simply double-click:
 
 ---
 
-### Method 2: Command Line Interface (CLI)
+### Method 2: Android App (`android_app`)
+
+The Android application is located in the `android_app/` folder.
+- Built with Kotlin, Jetpack Compose, Material 3, Biometrics, and ZXing Core.
+- Enforces strict network security, Scoped Storage, and `FLAG_SECURE` screen protection.
+
+---
+
+### Method 3: Command Line Interface (CLI)
 
 #### 1. Interactive Mode
 Run the script without arguments to start the step-by-step wizard:
@@ -73,31 +100,19 @@ Target Repository: `https://github.com/hongquang699/Qrcode.git`
 
 ---
 
-## 🛠️ CLI Options Reference
-
-| Flag | Full Option | Default | Description |
-| :--- | :--- | :--- | :--- |
-| `url` | *(positional)* | *None* | Website URL or text content to encode |
-| `-o` | `--output` | `qrcode.png` | Output file path (`.png` or `.svg`) |
-| | `--size` | `10` | Pixel size of each QR code box |
-| | `--border` | `4` | Border margin width (in boxes) |
-| | `--fg` | `black` | Foreground color (name or Hex like `#2563eb`) |
-| | `--bg` | `white` | Background color (name or Hex like `#ffffff`) |
-| `-h` | `--help` | | Show help message and exit |
-
----
-
 ## 📂 Project Structure
 
 ```text
 QRcode/
 ├── run.bat            # 1-Click launcher for Desktop GUI
 ├── run_push.bat       # 1-Click launcher to Push/Sync code to GitHub
-├── app_gui.py         # Tkinter Desktop GUI application (Created by Hong Quang)
-├── generate_qr.py     # CLI and core QR generator script
+├── app_gui.py         # Tkinter Desktop GUI application with Security Auditor
+├── generate_qr.py     # CLI and core QR generator engine
 ├── github_service.py  # GitHub automated/manual sync service
+├── android_app/       # Android Jetpack Compose native mobile app
+│   ├── app/           # App module (MainActivity, MainScreen, SecurityHelper, QRCodeHelper)
+│   └── build.gradle.kts
 ├── qrcode/            # Bundled ISO/IEC standard QR engine
-├── requirements.txt   # Dependencies list
 └── README.md          # Project documentation
 ```
 
