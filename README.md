@@ -16,6 +16,7 @@ Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable
   - **PNG**: Crisp raster image for web and printing.
   - **SVG**: Infinite-resolution vector format for design and large-scale printing.
 - ⚡ **CLI & Scripting Support**: Generate QR codes programmatically or interactively in the terminal.
+- 🔄 **GitHub Synchronization**: Built-in automated and manual code backup service.
 - 🛡️ **Self-Contained**: Pre-bundled standard engine — works out of the box without complex dependencies.
 
 ---
@@ -59,6 +60,17 @@ python generate_qr.py "https://github.com" -o "github_qr.png" --fg "#2563eb" --b
 
 ---
 
+## 🔄 GitHub Synchronization Service
+
+To manually synchronize all changes to your GitHub repository:
+```bash
+python github_service.py "Commit message here"
+```
+
+Target Repository: `https://github.com/hongquang699/Qrcode.git`
+
+---
+
 ## 🛠️ CLI Options Reference
 
 | Flag | Full Option | Default | Description |
@@ -80,6 +92,7 @@ QRcode/
 ├── run.bat            # 1-Click launcher for Windows
 ├── app_gui.py         # Tkinter Desktop GUI application
 ├── generate_qr.py     # CLI and core QR generator script
+├── github_service.py  # GitHub automated/manual sync service
 ├── qrcode/            # Bundled ISO/IEC standard QR engine
 ├── requirements.txt   # Dependencies list
 └── README.md          # Project documentation
