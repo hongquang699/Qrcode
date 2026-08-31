@@ -2,6 +2,7 @@
 ============================================================
 QR CODE GENERATOR - DESKTOP GUI APPLICATION
 ISO/IEC 18004 Standard Compliant - 100% Scannable Everywhere
+Created by Hong Quang
 ============================================================
 """
 
@@ -19,8 +20,8 @@ from generate_qr import generate_qr, parse_color_to_rgb
 class QRCodeGUIApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("QR Code Generator")
-        self.root.geometry("520x680")
+        self.root.title("QR Code Generator - by Hong Quang")
+        self.root.geometry("520x710")
         self.root.resizable(False, False)
         self.root.configure(bg="#f8fafc")
 
@@ -43,7 +44,7 @@ class QRCodeGUIApp:
             bg="#2563eb",
             fg="white"
         )
-        title_lbl.pack(pady=(12, 2))
+        title_lbl.pack(pady=(10, 1))
 
         sub_lbl = tk.Label(
             header,
@@ -52,11 +53,20 @@ class QRCodeGUIApp:
             bg="#2563eb",
             fg="#bfdbfe"
         )
-        sub_lbl.pack(pady=(0, 10))
+        sub_lbl.pack(pady=(0, 2))
+
+        author_header = tk.Label(
+            header,
+            text="Created by Hong Quang",
+            font=("Segoe UI", 8, "italic"),
+            bg="#2563eb",
+            fg="#e0e7ff"
+        )
+        author_header.pack(pady=(0, 8))
 
         # Main content
         content = tk.Frame(self.root, bg="#f8fafc")
-        content.pack(fill="both", expand=True, padx=25, pady=15)
+        content.pack(fill="both", expand=True, padx=25, pady=12)
 
         # Input Label
         lbl_url = tk.Label(
@@ -94,7 +104,7 @@ class QRCodeGUIApp:
 
         # Options Row (Colors)
         opt_frame = tk.Frame(content, bg="#f8fafc")
-        opt_frame.pack(fill="x", pady=(0, 12))
+        opt_frame.pack(fill="x", pady=(0, 10))
 
         self.btn_fg = tk.Button(
             opt_frame,
@@ -131,7 +141,7 @@ class QRCodeGUIApp:
             cursor="hand2",
             command=self.on_generate
         )
-        btn_gen.pack(fill="x", pady=(0, 15), ipady=6)
+        btn_gen.pack(fill="x", pady=(0, 12), ipady=6)
 
         # Preview Container
         preview_box = tk.LabelFrame(
@@ -143,15 +153,15 @@ class QRCodeGUIApp:
             relief="solid",
             bd=1
         )
-        preview_box.pack(fill="both", expand=True, pady=(0, 12))
+        preview_box.pack(fill="both", expand=True, pady=(0, 10))
 
         self.canvas = tk.Canvas(preview_box, bg="#ffffff", highlightthickness=0, width=280, height=280)
-        self.canvas.pack(expand=True, pady=10)
+        self.canvas.pack(expand=True, pady=8)
         self.show_placeholder()
 
         # Action Buttons Row
         action_row = tk.Frame(content, bg="#f8fafc")
-        action_row.pack(fill="x")
+        action_row.pack(fill="x", pady=(0, 8))
 
         self.btn_save = tk.Button(
             action_row,
@@ -182,6 +192,16 @@ class QRCodeGUIApp:
             command=self.open_saved_image
         )
         self.btn_open.pack(side="left", expand=True, fill="x", padx=(5, 0), ipady=5)
+
+        # Footer Credit
+        footer = tk.Label(
+            self.root,
+            text="✨ Created by Hong Quang | ISO/IEC 18004 Standard Compliant",
+            font=("Segoe UI", 8),
+            bg="#f8fafc",
+            fg="#94a3b8"
+        )
+        footer.pack(side="bottom", pady=(0, 8))
 
         self.last_saved_path = None
 

@@ -2,6 +2,7 @@
 ============================================================
 QR CODE GENERATOR - COMMAND LINE INTERFACE & SCRIPT
 ISO/IEC 18004 Standard Compliant - 100% Scannable Everywhere
+Created by Hong Quang
 ============================================================
 """
 
@@ -144,7 +145,7 @@ def generate_qr(url: str, output_path: str = "qrcode.png", box_size: int = 10, b
 def interactive_mode():
     """Interactive command-line mode."""
     print("=" * 60)
-    print("       🚀 QR CODE GENERATOR (INTERACTIVE CLI)       ")
+    print("       🚀 QR CODE GENERATOR - BY HONG QUANG       ")
     print("=" * 60)
     
     try:
@@ -171,6 +172,7 @@ def interactive_mode():
         print("=" * 60)
         print(f"🎉 QR CODE SUCCESSFULLY GENERATED!")
         print(f"📌 Saved at: {saved_path}")
+        print("✨ Created by Hong Quang")
         print("=" * 60)
 
         if sys.platform == "win32":
@@ -187,10 +189,12 @@ def interactive_mode():
         print(f"\n❌ Error: {e}")
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate standard QR codes from URLs or text.")
+    parser = argparse.ArgumentParser(
+        description="Generate standard QR codes from URLs or text (Created by Hong Quang)."
+    )
     parser.add_argument("url", nargs="?", help="Website link or content to encode into QR")
     parser.add_argument("-o", "--output", default=None, help="Output image filename (e.g. my_qr.png or my_qr.svg)")
-    parser.add_argument("--size", type=int, default=10, help="Pixel size of each QR box (default: 10)")
+    parser.add_argument("--size", type=int, default=10, help="Pixel size of each QR code box (default: 10)")
     parser.add_argument("--border", type=int, default=4, help="Border margin size (default: 4)")
     parser.add_argument("--fg", default="black", help="Foreground color (e.g. black, blue, red, #1e40af)")
     parser.add_argument("--bg", default="white", help="Background color (default: white)")

@@ -4,6 +4,9 @@ A lightweight, zero-configuration desktop application and command-line tool to g
 
 Fully compliant with **ISO/IEC 18004** standards — guaranteed **100% scannable** on all iOS, Android, and camera devices.
 
+> **Author**: Created by **Hong Quang**  
+> **Repository**: [https://github.com/hongquang699/Qrcode](https://github.com/hongquang699/Qrcode)
+
 ---
 
 ## ✨ Features
@@ -90,7 +93,7 @@ Target Repository: `https://github.com/hongquang699/Qrcode.git`
 QRcode/
 ├── run.bat            # 1-Click launcher for Desktop GUI
 ├── run_push.bat       # 1-Click launcher to Push/Sync code to GitHub
-├── app_gui.py         # Tkinter Desktop GUI application
+├── app_gui.py         # Tkinter Desktop GUI application (Created by Hong Quang)
 ├── generate_qr.py     # CLI and core QR generator script
 ├── github_service.py  # GitHub automated/manual sync service
 ├── qrcode/            # Bundled ISO/IEC standard QR engine
@@ -99,6 +102,10 @@ QRcode/
 ```
 
 ---
+
+## 👨‍💻 Author
+
+Created with ❤️ by **Hong Quang**.
 
 ## 📄 License
 
