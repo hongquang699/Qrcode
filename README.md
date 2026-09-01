@@ -45,16 +45,16 @@ Our application integrates industry-grade security standards across Desktop and 
 
 ## 🚀 Getting Started
 
-### Method 1: 1-Click Desktop App (Recommended)
+### Method 1: Standalone Windows App (.exe) (Recommended)
 
 Simply double-click:
 
-👉 [**`run.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run.bat)
+👉 [**`QRCodeGenerator.exe`**](file:///c:/Users/HOA%20BINH/QRcode/QRCodeGenerator.exe) *(or run with [**`run.bat`**](file:///c:/Users/HOA%20BINH/QRcode/run.bat))*
 
-1. Paste your website URL into the input field.
-2. *(Optional)* Pick custom foreground/background colors.
-3. Click **⚡ GENERATE QR CODE** to see the live preview.
-4. Click **💾 Save PNG / SVG** to export your QR code.
+- No Python installation required.
+- Self-contained, portable, and runs on any 64-bit Windows PC.
+- Features real-time link security auditing, live QR preview, color picker, and PNG/SVG export.
+
 
 ---
 
