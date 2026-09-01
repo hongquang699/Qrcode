@@ -42,6 +42,14 @@ class QRCodeGUIApp:
         self.bg_color = "#ffffff"
         self.last_saved_path = None
 
+        # Set window icon
+        icon_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app_icon.ico")
+        if os.path.exists(icon_path):
+            try:
+                self.root.iconbitmap(icon_path)
+            except Exception:
+                pass
+
         self.create_widgets()
         self.switch_category("url")
 

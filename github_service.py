@@ -97,9 +97,11 @@ def git_push(commit_message: str = None) -> dict:
         logs = []
 
         # 1. Automatically place .gitkeep in any empty subdirectories so Git tracks them
+        ignore_dirs = {'build', '.gradle', '.idea', 'dist', 'bin', '.git', '__pycache__', '.kotlin'}
         for root, dirs, files in os.walk(PROJECT_ROOT):
             rel = os.path.relpath(root, PROJECT_ROOT)
-            if rel.startswith(".git") or rel.startswith("__pycache__") or rel == ".":
+            parts = set(rel.split(os.sep))
+            if rel == "." or bool(parts & ignore_dirs):
                 continue
             if not dirs and not files:
                 gitkeep_path = os.path.join(root, ".gitkeep")
@@ -109,6 +111,7 @@ def git_push(commit_message: str = None) -> dict:
                     logs.append(f"[auto .gitkeep] Created in empty folder: {rel}")
                 except Exception:
                     pass
+
 
         # 2. Check changes before adding
         status_before = subprocess.run(
