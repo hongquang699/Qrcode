@@ -47,13 +47,21 @@ val colorPresets = listOf(
     ColorOption("Crimson", Color(0xFFDC2626), "#dc2626")
 )
 
-enum class QRType(val title: String, val desc: String, val iconEmoji: String) {
-    URL("URL", "Tạo mã QR mở trang web.", "🌐"),
-    PHONE("Điện thoại", "Tạo mã QR để gọi số điện thoại.", "📱"),
-    WIFI("Wi-Fi", "Tạo mã QR để kết nối Wi-Fi.", "📶"),
-    EMAIL("E-mail", "Tạo mã QR bắt đầu bản thảo email.", "✉️"),
-    PDF("PDF", "Tạo mã QR để chia sẻ PDF.", "📄"),
-    TEXT("Văn bản", "Tạo mã QR với một thông điệp tùy chỉnh.", "Aa")
+enum class AppLanguage {
+    VI, EN
+}
+
+enum class QRType(
+    val titleVi: String, val descVi: String,
+    val titleEn: String, val descEn: String,
+    val iconEmoji: String
+) {
+    URL("URL", "Tạo mã QR mở trang web.", "URL", "Generate QR to open website.", "🌐"),
+    PHONE("Điện thoại", "Tạo mã QR để gọi số điện thoại.", "Phone", "Generate QR to dial a number.", "📱"),
+    WIFI("Wi-Fi", "Tạo mã QR để kết nối Wi-Fi.", "Wi-Fi", "Generate QR to join Wi-Fi.", "📶"),
+    EMAIL("E-mail", "Tạo mã QR bắt đầu bản thảo email.", "E-mail", "Generate QR to compose email.", "✉️"),
+    PDF("PDF", "Tạo mã QR để chia sẻ PDF.", "PDF", "Generate QR to share PDF/file.", "📄"),
+    TEXT("Văn bản", "Tạo mã QR với thông điệp tùy chỉnh.", "Text", "Generate QR with custom text.", "Aa")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -65,6 +73,7 @@ fun MainScreen(
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
+    var currentLang by remember { mutableStateOf(AppLanguage.VI) }
     var selectedType by remember { mutableStateOf(QRType.URL) }
     var selectedColor by remember { mutableStateOf(colorPresets[0]) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -83,6 +92,8 @@ fun MainScreen(
     var emailBody by remember { mutableStateOf("") }
     var pdfInput by remember { mutableStateOf("https://drive.google.com/") }
     var textInput by remember { mutableStateOf("") }
+
+    val isVi = currentLang == AppLanguage.VI
 
     // Calculated Payload
     val currentPayload = remember(
@@ -104,7 +115,6 @@ fun MainScreen(
                     }
                 } else ""
             }
-
             QRType.EMAIL -> {
                 if (emailTo.isNotBlank()) {
                     val encSub = URLEncoder.encode(emailSubject.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")
@@ -139,13 +149,13 @@ fun MainScreen(
                 Text(text = "🔒", fontSize = 64.sp)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
-                    text = "Application Locked",
+                    text = if (isVi) "Ứng dụng đang khóa" else "Application Locked",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Biometric / Device security verification required",
+                    text = if (isVi) "Yêu cầu xác thực sinh trắc học để tiếp tục" else "Biometric / Device security verification required",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center
@@ -158,7 +168,7 @@ fun MainScreen(
                                 activity = activity,
                                 onSuccess = {
                                     isAppLocked = false
-                                    Toast.makeText(context, "Unlocked successfully!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isVi) "Mở khóa thành công!" else "Unlocked successfully!", Toast.LENGTH_SHORT).show()
                                 },
                                 onError = { errorMsg ->
                                     Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
@@ -171,7 +181,7 @@ fun MainScreen(
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.fillMaxWidth(0.7f)
                 ) {
-                    Text("🔓 Unlock App")
+                    Text(if (isVi) "🔓 Mở khóa ứng dụng" else "🔓 Unlock App")
                 }
             }
         }
@@ -184,16 +194,44 @@ fun MainScreen(
                 title = {
                     Column {
                         Text(
-                            text = "📱 QR Code Generator",
+                            text = if (isVi) "📱 Trình tạo mã QR" else "📱 QR Code Generator",
                             fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp
+                            fontSize = 19.sp
                         )
                         Text(
-                            text = "Created by Hong Quang • Enterprise Security Edition",
+                            text = if (isVi) "Được tạo bởi Hong Quang • Bản bảo mật doanh nghiệp" else "Created by Hong Quang • Enterprise Security Edition",
                             style = MaterialTheme.typography.bodySmall,
                             fontStyle = FontStyle.Italic,
                             color = MaterialTheme.colorScheme.primary
                         )
+                    }
+                },
+                actions = {
+                    // Language Switcher Pill
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
+                        modifier = Modifier
+
+                            .padding(end = 8.dp)
+                            .clickable {
+                                currentLang = if (currentLang == AppLanguage.VI) AppLanguage.EN else AppLanguage.VI
+                                Toast.makeText(context, if (currentLang == AppLanguage.VI) "Đã chuyển sang Tiếng Việt 🇻🇳" else "Switched to English 🇬🇧", Toast.LENGTH_SHORT).show()
+                            }
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = if (isVi) "🇻🇳 VI" else "🇬🇧 EN",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text("⇄", fontSize = 12.sp, color = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
@@ -213,7 +251,7 @@ fun MainScreen(
         ) {
             // Category Cards Grid (3 Rows x 2 Columns)
             Text(
-                text = "✨ Chọn loại mã QR:",
+                text = if (isVi) "✨ Chọn loại mã QR:" else "✨ Select QR Code Type:",
                 fontWeight = FontWeight.Bold,
                 fontSize = 16.sp,
                 modifier = Modifier.fillMaxWidth(),
@@ -269,13 +307,13 @@ fun MainScreen(
 
                                     Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = type.title,
+                                            text = if (isVi) type.titleVi else type.titleEn,
                                             fontWeight = FontWeight.Bold,
                                             fontSize = 14.sp,
                                             color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B)
                                         )
                                         Text(
-                                            text = type.desc,
+                                            text = if (isVi) type.descVi else type.descEn,
                                             fontSize = 11.sp,
                                             lineHeight = 14.sp,
                                             color = Color(0xFF64748B)
@@ -306,7 +344,7 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "${selectedType.iconEmoji} Nhập thông tin (${selectedType.title}):",
+                        text = "${selectedType.iconEmoji} " + if (isVi) "Nhập thông tin (${selectedType.titleVi}):" else "Enter Details (${selectedType.titleEn}):",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp,
                         color = MaterialTheme.colorScheme.primary
@@ -319,7 +357,7 @@ fun MainScreen(
                                 onValueChange = { urlInput = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 placeholder = { Text("https://example.com") },
-                                label = { Text("Website URL") },
+                                label = { Text(if (isVi) "Website URL" else "Website Link") },
                                 shape = RoundedCornerShape(12.dp)
                             )
                         }
@@ -328,8 +366,8 @@ fun MainScreen(
                                 value = phoneInput,
                                 onValueChange = { phoneInput = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                placeholder = { Text("0912345678 hoặc +84...") },
-                                label = { Text("Số điện thoại") },
+                                placeholder = { Text(if (isVi) "0912345678 hoặc +84..." else "+1 234 567 8900...") },
+                                label = { Text(if (isVi) "Số điện thoại" else "Phone Number") },
                                 shape = RoundedCornerShape(12.dp)
                             )
                         }
@@ -338,13 +376,13 @@ fun MainScreen(
                                 value = wifiSsid,
                                 onValueChange = { wifiSsid = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Tên mạng Wi-Fi (SSID)") },
-                                placeholder = { Text("VD: WiFi-Cong-Cong, Home-WiFi...") },
+                                label = { Text(if (isVi) "Tên mạng Wi-Fi (SSID)" else "Wi-Fi Network Name (SSID)") },
+                                placeholder = { Text(if (isVi) "VD: WiFi-Cong-Cong, Home-WiFi..." else "e.g. Office-WiFi...") },
                                 shape = RoundedCornerShape(12.dp)
                             )
 
                             Text(
-                                text = "Loại bảo mật Wi-Fi:",
+                                text = if (isVi) "Loại bảo mật Wi-Fi:" else "Wi-Fi Security Type:",
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 13.sp,
                                 color = MaterialTheme.colorScheme.onSurface
@@ -363,7 +401,7 @@ fun MainScreen(
                                         selected = wifiSecurity == "WPA",
                                         onClick = { wifiSecurity = "WPA" }
                                     )
-                                    Text("Có mật khẩu (WPA/WPA2/WPA3)", fontSize = 12.sp)
+                                    Text(if (isVi) "Có mật khẩu (WPA/WPA2/WPA3)" else "Password Protected (WPA/WPA2/WPA3)", fontSize = 12.sp)
                                 }
                             }
 
@@ -380,7 +418,11 @@ fun MainScreen(
                                         selected = wifiSecurity == "nopass",
                                         onClick = { wifiSecurity = "nopass" }
                                     )
-                                    Text("Không có mật khẩu (Open / Mạng mở)", fontSize = 12.sp, fontWeight = if (wifiSecurity == "nopass") FontWeight.Bold else FontWeight.Normal)
+                                    Text(
+                                        text = if (isVi) "Không có mật khẩu (Open / Mạng mở)" else "No Password (Open Network)",
+                                        fontSize = 12.sp,
+                                        fontWeight = if (wifiSecurity == "nopass") FontWeight.Bold else FontWeight.Normal
+                                    )
                                 }
                             }
 
@@ -389,8 +431,8 @@ fun MainScreen(
                                     value = wifiPassword,
                                     onValueChange = { wifiPassword = it },
                                     modifier = Modifier.fillMaxWidth(),
-                                    label = { Text("Mật khẩu Wi-Fi") },
-                                    placeholder = { Text("Nhập mật khẩu Wi-Fi...") },
+                                    label = { Text(if (isVi) "Mật khẩu Wi-Fi" else "Wi-Fi Password") },
+                                    placeholder = { Text(if (isVi) "Nhập mật khẩu Wi-Fi..." else "Enter password...") },
                                     shape = RoundedCornerShape(12.dp)
                                 )
                             } else {
@@ -400,7 +442,8 @@ fun MainScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "🔓 Mạng Wi-Fi mở (Không mật khẩu): Thiết bị quét mã sẽ tự động kết nối trực tiếp vào Wi-Fi.",
+                                        text = if (isVi) "🔓 Mạng Wi-Fi mở (Không mật khẩu): Thiết bị quét mã sẽ tự động kết nối trực tiếp vào Wi-Fi."
+                                        else "🔓 Open Network (No Password): Devices will connect directly upon scanning.",
                                         color = Color(0xFF166534),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(10.dp)
@@ -408,13 +451,12 @@ fun MainScreen(
                                 }
                             }
                         }
-
                         QRType.EMAIL -> {
                             OutlinedTextField(
                                 value = emailTo,
                                 onValueChange = { emailTo = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Địa chỉ Email người nhận") },
+                                label = { Text(if (isVi) "Địa chỉ Email người nhận" else "Recipient Email") },
                                 placeholder = { Text("contact@example.com") },
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -422,14 +464,14 @@ fun MainScreen(
                                 value = emailSubject,
                                 onValueChange = { emailSubject = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Tiêu đề thư (Subject)") },
+                                label = { Text(if (isVi) "Tiêu đề thư (Subject)" else "Email Subject") },
                                 shape = RoundedCornerShape(12.dp)
                             )
                             OutlinedTextField(
                                 value = emailBody,
                                 onValueChange = { emailBody = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Nội dung thư") },
+                                label = { Text(if (isVi) "Nội dung thư" else "Message Body") },
                                 minLines = 2,
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -439,7 +481,7 @@ fun MainScreen(
                                 value = pdfInput,
                                 onValueChange = { pdfInput = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Đường link file PDF / Google Drive") },
+                                label = { Text(if (isVi) "Đường link file PDF / Google Drive" else "PDF / Google Drive Link") },
                                 placeholder = { Text("https://drive.google.com/file/d/...") },
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -449,8 +491,8 @@ fun MainScreen(
                                 value = textInput,
                                 onValueChange = { textInput = it },
                                 modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Nội dung văn bản") },
-                                placeholder = { Text("Nhập thông điệp bất kỳ...") },
+                                label = { Text(if (isVi) "Nội dung văn bản" else "Plain Text Content") },
+                                placeholder = { Text(if (isVi) "Nhập thông điệp bất kỳ..." else "Type any message...") },
                                 minLines = 3,
                                 shape = RoundedCornerShape(12.dp)
                             )
@@ -467,7 +509,7 @@ fun MainScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "✅ Đã xác thực bảo mật chuẩn ISO/IEC",
+                                        text = if (isVi) "✅ Đã xác thực bảo mật chuẩn ISO/IEC" else "✅ Verified ISO/IEC Standard Security",
                                         color = Color(0xFF166534),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(8.dp)
@@ -482,7 +524,7 @@ fun MainScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(
-                                            text = "⚠️ Lưu ý bảo mật:",
+                                            text = if (isVi) "⚠️ Lưu ý bảo mật:" else "⚠️ Security Advisory:",
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF854D0E),
                                             fontSize = 12.sp
@@ -501,7 +543,7 @@ fun MainScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(
-                                            text = "🚨 Cảnh báo liên kết rủi ro:",
+                                            text = if (isVi) "🚨 Cảnh báo liên kết rủi ro:" else "🚨 High Risk Warning:",
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF991B1B),
                                             fontSize = 12.sp
@@ -533,20 +575,20 @@ fun MainScreen(
                                         QRType.EMAIL -> emailTo = pasteText
                                         QRType.WIFI -> wifiSsid = pasteText
                                     }
-                                    Toast.makeText(context, "Đã dán từ bộ nhớ tạm!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isVi) "Đã dán từ bộ nhớ tạm!" else "Pasted from clipboard!", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
-                            Text("📋 Dán")
+                            Text(if (isVi) "📋 Dán" else "📋 Paste")
                         }
 
                         Button(
                             onClick = {
                                 if (currentPayload.isBlank()) {
-                                    Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isVi) "Vui lòng nhập đầy đủ thông tin!" else "Please fill in all details!", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
                                 val bmp = QRCodeHelper.generateQRCodeBitmap(
@@ -558,21 +600,21 @@ fun MainScreen(
                                 )
                                 if (bmp != null) {
                                     qrBitmap = bmp
-                                    Toast.makeText(context, "Tạo mã QR thành công!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isVi) "Tạo mã QR thành công!" else "QR Code Generated!", Toast.LENGTH_SHORT).show()
                                 } else {
-                                    Toast.makeText(context, "Lỗi tạo mã QR", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, if (isVi) "Lỗi tạo mã QR" else "Failed to generate QR", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(2f),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("⚡ TẠO MÃ QR")
+                            Text(if (isVi) "⚡ TẠO MÃ QR" else "⚡ GENERATE QR")
                         }
                     }
 
                     // Color selection
                     Text(
-                        text = "🎨 Tùy chỉnh màu sắc mã QR:",
+                        text = if (isVi) "🎨 Tùy chỉnh màu sắc mã QR:" else "🎨 QR Code Color Theme:",
                         fontWeight = FontWeight.Medium,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -647,16 +689,16 @@ fun MainScreen(
                                 onClick = {
                                     val success = QRCodeHelper.saveBitmapToGallery(context, qrBitmap!!)
                                     if (success) {
-                                        Toast.makeText(context, "Đã lưu vào thư mục Pictures/QRCodeGenerator!", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, if (isVi) "Đã lưu vào Pictures/QRCodeGenerator!" else "Saved to Pictures/QRCodeGenerator!", Toast.LENGTH_LONG).show()
                                     } else {
-                                        Toast.makeText(context, "Không thể lưu ảnh", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, if (isVi) "Không thể lưu ảnh" else "Could not save image", Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A34A))
                             ) {
-                                Text("💾 Lưu PNG")
+                                Text(if (isVi) "💾 Lưu PNG" else "💾 Save PNG")
                             }
 
                             FilledTonalButton(
@@ -666,7 +708,7 @@ fun MainScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp)
                             ) {
-                                Text("📤 Chia sẻ")
+                                Text(if (isVi) "📤 Chia sẻ" else "📤 Share")
                             }
                         }
                     } else {
@@ -677,7 +719,7 @@ fun MainScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "Chưa có mã QR\nChọn loại & bấm 'TẠO MÃ QR'",
+                                text = if (isVi) "Chưa có mã QR\nChọn loại & bấm 'TẠO MÃ QR'" else "No QR code yet\nSelect type & tap 'GENERATE QR'",
                                 textAlign = TextAlign.Center,
                                 color = Color(0xFF94A3B8),
                                 fontSize = 14.sp
@@ -698,7 +740,7 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "⚙️ Cài đặt Quyền riêng tư & Bảo mật",
+                        text = if (isVi) "⚙️ Cài đặt Quyền riêng tư & Bảo mật" else "⚙️ Privacy & Security Controls",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -710,12 +752,12 @@ fun MainScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Chống chụp & quay màn hình",
+                                text = if (isVi) "Chống chụp & quay màn hình" else "Screenshot & Recording Protection",
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "Kích hoạt FLAG_SECURE bảo vệ thông tin",
+                                text = if (isVi) "Kích hoạt FLAG_SECURE bảo vệ thông tin" else "Enables FLAG_SECURE against snooping",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -728,7 +770,8 @@ fun MainScreen(
                                     SecurityHelper.setScreenshotProtection(activity, enable)
                                     Toast.makeText(
                                         context,
-                                        if (enable) "Đã kích hoạt bảo vệ màn hình (FLAG_SECURE)!" else "Đã tắt bảo vệ màn hình",
+                                        if (enable) (if (isVi) "Đã kích hoạt bảo vệ màn hình (FLAG_SECURE)!" else "Screen protection enabled (FLAG_SECURE)!")
+                                        else (if (isVi) "Đã tắt bảo vệ màn hình" else "Screen protection disabled"),
                                         Toast.LENGTH_SHORT
                                     ).show()
                                 }
@@ -745,12 +788,12 @@ fun MainScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Khóa ứng dụng (Sinh trắc học)",
+                                text = if (isVi) "Khóa ứng dụng (Sinh trắc học)" else "App Lock (Biometrics)",
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "Yêu cầu vân tay / Face ID / mã PIN",
+                                text = if (isVi) "Yêu cầu vân tay / Face ID / mã PIN" else "Requires Fingerprint / Face ID / PIN",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -761,11 +804,11 @@ fun MainScreen(
                                     if (SecurityHelper.canAuthenticateBiometrics(context)) {
                                         SecurityHelper.authenticate(
                                             activity = activity,
-                                            title = "Xác thực bảo mật",
-                                            subtitle = "Khóa ứng dụng với sinh trắc học",
+                                            title = if (isVi) "Xác thực bảo mật" else "Security Verification",
+                                            subtitle = if (isVi) "Khóa ứng dụng với sinh trắc học" else "App lock with biometrics",
                                             onSuccess = {
                                                 isAppLocked = true
-                                                Toast.makeText(context, "Ứng dụng đã được khóa!", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, if (isVi) "Ứng dụng đã được khóa!" else "App locked successfully!", Toast.LENGTH_SHORT).show()
                                             },
                                             onError = { err ->
                                                 Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
@@ -773,13 +816,13 @@ fun MainScreen(
                                         )
                                     } else {
                                         isAppLocked = true
-                                        Toast.makeText(context, "Ứng dụng đã khóa (PIN mặc định)!", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, if (isVi) "Ứng dụng đã khóa (PIN mặc định)!" else "App locked (Device PIN)!", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             },
                             shape = RoundedCornerShape(8.dp)
                         ) {
-                            Text("🔒 Khóa ngay", fontSize = 12.sp)
+                            Text(if (isVi) "🔒 Khóa ngay" else "🔒 Lock Now", fontSize = 12.sp)
                         }
                     }
                 }
@@ -787,7 +830,7 @@ fun MainScreen(
 
             // Footer
             Text(
-                text = "✨ Created with ❤️ by Hong Quang\nISO/IEC 18004 Standard Compliant • TLS 1.3 Strict",
+                text = if (isVi) "✨ Được tạo bởi Hong Quang\nChuẩn ISO/IEC 18004 • TLS 1.3 Strict" else "✨ Created with ❤️ by Hong Quang\nISO/IEC 18004 Standard Compliant • TLS 1.3 Strict",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant

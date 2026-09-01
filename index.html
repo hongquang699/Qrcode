@@ -52,12 +52,30 @@
         }
 
         .header {
+            position: relative;
             text-align: center;
             padding: 10px 0 4px 0;
         }
 
+        .lang-toggle {
+            position: absolute;
+            top: 10px;
+            right: 0;
+            background: #dbeafe;
+            color: var(--primary);
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
         .header h1 {
-            font-size: 22px;
+            font-size: 21px;
             font-weight: 800;
             color: var(--text);
             display: flex;
@@ -289,71 +307,20 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1><span>📱</span> QR Code Generator</h1>
-            <p>Created by Hong Quang • Apple iOS Edition</p>
+            <button class="lang-toggle" onclick="toggleLang()" id="btn_lang">🇬🇧 EN</button>
+            <h1 id="txt_app_title"><span>📱</span> QR Code Generator</h1>
+            <p id="txt_app_subtitle">Created by Hong Quang • Apple iOS Edition</p>
         </div>
 
         <div class="badge-security">
             <span>🔒</span>
-            <span>100% Offline Processing • Chuẩn ISO/IEC 18004</span>
+            <span id="txt_security_badge">100% Offline Processing • Chuẩn ISO/IEC 18004</span>
         </div>
 
         <div>
-            <div class="section-title">Chọn loại mã QR:</div>
-            <div class="categories-grid">
-                <div class="cat-card active" onclick="selectCategory('url')">
-                    <div class="cat-icon">🌐</div>
-                    <div class="cat-info">
-                        <div class="cat-name">URL</div>
-                        <div class="cat-desc">Mở trang web</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
-
-                <div class="cat-card" onclick="selectCategory('phone')">
-                    <div class="cat-icon">📞</div>
-                    <div class="cat-info">
-                        <div class="cat-name">Điện thoại</div>
-                        <div class="cat-desc">Gọi số điện thoại</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
-
-                <div class="cat-card" onclick="selectCategory('wifi')">
-                    <div class="cat-icon">📶</div>
-                    <div class="cat-info">
-                        <div class="cat-name">Wi-Fi</div>
-                        <div class="cat-desc">Kết nối Wi-Fi</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
-
-                <div class="cat-card" onclick="selectCategory('email')">
-                    <div class="cat-icon">✉️</div>
-                    <div class="cat-info">
-                        <div class="cat-name">E-mail</div>
-                        <div class="cat-desc">Bản thảo email</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
-
-                <div class="cat-card" onclick="selectCategory('pdf')">
-                    <div class="cat-icon">📄</div>
-                    <div class="cat-info">
-                        <div class="cat-name">PDF</div>
-                        <div class="cat-desc">Chia sẻ PDF</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
-
-                <div class="cat-card" onclick="selectCategory('text')">
-                    <div class="cat-icon">Aa</div>
-                    <div class="cat-info">
-                        <div class="cat-name">Văn bản</div>
-                        <div class="cat-desc">Thông điệp tùy chỉnh</div>
-                    </div>
-                    <div class="cat-arrow">➔</div>
-                </div>
+            <div class="section-title" id="txt_cat_title">Chọn loại mã QR:</div>
+            <div class="categories-grid" id="cat_grid">
+                <!-- Injected categories -->
             </div>
         </div>
 
@@ -364,97 +331,206 @@
         <div class="card preview-card">
             <div id="qrcode"></div>
             <div class="btn-row">
-                <button class="btn-save" onclick="saveQRCode()">💾 Lưu ảnh (Save)</button>
-                <button class="btn-share" onclick="shareQRCode()">📤 Chia sẻ (Share)</button>
+                <button class="btn-save" id="btn_save" onclick="saveQRCode()">💾 Lưu ảnh (Save)</button>
+                <button class="btn-share" id="btn_share" onclick="shareQRCode()">📤 Chia sẻ (Share)</button>
             </div>
         </div>
 
-        <div class="footer">
+        <div class="footer" id="txt_footer">
             ✨ Created with ❤️ by <strong>Hong Quang</strong><br>
             Tương thích iPhone, iPad, Android & Windows
         </div>
     </div>
 
     <script>
+        let currentLang = 'vi';
         let currentCat = 'url';
         let qrcodeObj = null;
 
+        const i18n = {
+            vi: {
+                lang_btn: '🇬🇧 EN',
+                app_title: '📱 Trình tạo mã QR',
+                app_subtitle: 'Được tạo bởi Hong Quang • Bản Apple iOS',
+                sec_badge: '100% Xử lý ngoại tuyến • Chuẩn ISO/IEC 18004',
+                cat_title: 'Chọn loại mã QR:',
+                btn_gen: '⚡ TẠO MÃ QR',
+                btn_save: '💾 Lưu ảnh (Save)',
+                btn_share: '📤 Chia sẻ (Share)',
+                footer: '✨ Được tạo bởi <strong>Hong Quang</strong><br>Tương thích iPhone, iPad, Android & Windows',
+                empty_msg: 'Vui lòng nhập đầy đủ thông tin!',
+                cats: [
+                    { id: 'url', icon: '🌐', name: 'URL', desc: 'Mở trang web' },
+                    { id: 'phone', icon: '📞', name: 'Điện thoại', desc: 'Gọi số điện thoại' },
+                    { id: 'wifi', icon: '📶', name: 'Wi-Fi', desc: 'Kết nối Wi-Fi' },
+                    { id: 'email', icon: '✉️', name: 'E-mail', desc: 'Bản thảo email' },
+                    { id: 'pdf', icon: '📄', name: 'PDF', desc: 'Chia sẻ PDF' },
+                    { id: 'text', icon: 'Aa', name: 'Văn bản', desc: 'Thông điệp tùy chỉnh' }
+                ],
+                forms: {
+                    url_lbl: '🌐 Nhập Website URL:',
+                    phone_lbl: '📞 Nhập Số điện thoại:',
+                    wifi_ssid: '📶 Tên Wi-Fi (SSID):',
+                    wifi_sec: 'Loại bảo mật:',
+                    wifi_opt_pass: 'Có mật khẩu (WPA/WPA2/WPA3)',
+                    wifi_opt_open: 'Không có mật khẩu (Open / Mạng mở)',
+                    wifi_pass: 'Mật khẩu Wi-Fi:',
+                    email_to: '✉️ Email người nhận:',
+                    email_sub: 'Tiêu đề thư:',
+                    email_body: 'Nội dung thư:',
+                    pdf_lbl: '📄 Link file PDF / Google Drive:',
+                    text_lbl: '📝 Nhập nội dung văn bản:'
+                }
+            },
+            en: {
+                lang_btn: '🇻🇳 VI',
+                app_title: '📱 QR Code Generator',
+                app_subtitle: 'Created by Hong Quang • Apple iOS Edition',
+                sec_badge: '100% Offline Processing • ISO/IEC 18004 Compliant',
+                cat_title: 'Select QR Code Type:',
+                btn_gen: '⚡ GENERATE QR CODE',
+                btn_save: '💾 Save Image',
+                btn_share: '📤 Share',
+                footer: '✨ Created with ❤️ by <strong>Hong Quang</strong><br>Compatible with iPhone, iPad, Android & Windows',
+                empty_msg: 'Please fill in all details!',
+                cats: [
+                    { id: 'url', icon: '🌐', name: 'URL', desc: 'Open website' },
+                    { id: 'phone', icon: '📞', name: 'Phone', desc: 'Dial phone number' },
+                    { id: 'wifi', icon: '📶', name: 'Wi-Fi', desc: 'Join Wi-Fi network' },
+                    { id: 'email', icon: '✉️', name: 'E-mail', desc: 'Compose email' },
+                    { id: 'pdf', icon: '📄', name: 'PDF', desc: 'Share PDF/file' },
+                    { id: 'text', icon: 'Aa', name: 'Plain Text', desc: 'Custom message' }
+                ],
+                forms: {
+                    url_lbl: '🌐 Enter Website Link (URL):',
+                    phone_lbl: '📞 Enter Phone Number:',
+                    wifi_ssid: '📶 Wi-Fi Name (SSID):',
+                    wifi_sec: 'Security Type:',
+                    wifi_opt_pass: 'Password Protected (WPA/WPA2/WPA3)',
+                    wifi_opt_open: 'No Password (Open Network)',
+                    wifi_pass: 'Wi-Fi Password:',
+                    email_to: '✉️ Recipient Email:',
+                    email_sub: 'Subject:',
+                    email_body: 'Message Body:',
+                    pdf_lbl: '📄 PDF / Google Drive Link:',
+                    text_lbl: '📝 Custom Text Message:'
+                }
+            }
+        };
+
+        function toggleLang() {
+            currentLang = currentLang === 'vi' ? 'en' : 'vi';
+            updateUIStrings();
+        }
+
+        function updateUIStrings() {
+            const t = i18n[currentLang];
+            document.getElementById('btn_lang').innerText = t.lang_btn;
+            document.getElementById('txt_app_title').innerHTML = `<span>📱</span> ${t.app_title.replace('📱 ', '')}`;
+            document.getElementById('txt_app_subtitle').innerText = t.app_subtitle;
+            document.getElementById('txt_security_badge').innerText = t.sec_badge;
+            document.getElementById('txt_cat_title').innerText = t.cat_title;
+            document.getElementById('btn_save').innerText = t.btn_save;
+            document.getElementById('btn_share').innerText = t.btn_share;
+            document.getElementById('txt_footer').innerHTML = t.footer;
+
+            renderCategories();
+            renderForm();
+        }
+
+        function renderCategories() {
+            const grid = document.getElementById('cat_grid');
+            const cats = i18n[currentLang].cats;
+            grid.innerHTML = cats.map(c => `
+                <div class="cat-card ${c.id === currentCat ? 'active' : ''}" onclick="selectCategory('${c.id}')">
+                    <div class="cat-icon">${c.icon}</div>
+                    <div class="cat-info">
+                        <div class="cat-name">${c.name}</div>
+                        <div class="cat-desc">${c.desc}</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+            `).join('');
+        }
+
         function selectCategory(cat) {
             currentCat = cat;
-            document.querySelectorAll('.cat-card').forEach(el => el.classList.remove('active'));
-            event.currentTarget.classList.add('active');
+            renderCategories();
             renderForm();
         }
 
         function renderForm() {
             const container = document.getElementById('form-container');
+            const f = i18n[currentLang].forms;
+            const btnText = i18n[currentLang].btn_gen;
+
             if (currentCat === 'url') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>🌐 Nhập Website URL:</label>
+                        <label>${f.url_lbl}</label>
                         <input type="url" id="inp_url" value="https://" placeholder="https://example.com">
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             } else if (currentCat === 'phone') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>📞 Nhập Số điện thoại:</label>
-                        <input type="tel" id="inp_phone" placeholder="0912345678 hoặc +84...">
+                        <label>${f.phone_lbl}</label>
+                        <input type="tel" id="inp_phone" placeholder="0912345678...">
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             } else if (currentCat === 'wifi') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>📶 Tên Wi-Fi (SSID):</label>
+                        <label>${f.wifi_ssid}</label>
                         <input type="text" id="inp_wifi_ssid" placeholder="VD: MyHome-WiFi">
                     </div>
                     <div class="form-group">
-                        <label>Loại bảo mật:</label>
+                        <label>${f.wifi_sec}</label>
                         <select id="inp_wifi_sec" onchange="toggleWifiPass()">
-                            <option value="WPA">Có mật khẩu (WPA/WPA2/WPA3)</option>
-                            <option value="nopass">Không có mật khẩu (Open)</option>
+                            <option value="WPA">${f.wifi_opt_pass}</option>
+                            <option value="nopass">${f.wifi_opt_open}</option>
                             <option value="WEP">WEP</option>
                         </select>
                     </div>
                     <div class="form-group" id="wifi_pass_group">
-                        <label>Mật khẩu Wi-Fi:</label>
-                        <input type="password" id="inp_wifi_pass" placeholder="Nhập mật khẩu...">
+                        <label>${f.wifi_pass}</label>
+                        <input type="password" id="inp_wifi_pass" placeholder="Password...">
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             } else if (currentCat === 'email') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>✉️ Email người nhận:</label>
+                        <label>${f.email_to}</label>
                         <input type="email" id="inp_email_to" placeholder="contact@example.com">
                     </div>
                     <div class="form-group">
-                        <label>Tiêu đề thư:</label>
-                        <input type="text" id="inp_email_sub" placeholder="Tiêu đề...">
+                        <label>${f.email_sub}</label>
+                        <input type="text" id="inp_email_sub" placeholder="...">
                     </div>
                     <div class="form-group">
-                        <label>Nội dung thư:</label>
-                        <input type="text" id="inp_email_body" placeholder="Nội dung...">
+                        <label>${f.email_body}</label>
+                        <input type="text" id="inp_email_body" placeholder="...">
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             } else if (currentCat === 'pdf') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>📄 Link file PDF / Google Drive:</label>
-                        <input type="url" id="inp_pdf" value="https://drive.google.com/" placeholder="https://drive.google.com/...">
+                        <label>${f.pdf_lbl}</label>
+                        <input type="url" id="inp_pdf" value="https://drive.google.com/" placeholder="https://...">
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             } else if (currentCat === 'text') {
                 container.innerHTML = `
                     <div class="form-group">
-                        <label>📝 Nhập nội dung văn bản:</label>
-                        <textarea id="inp_text" rows="3" placeholder="Nhập tin nhắn bất kỳ..."></textarea>
+                        <label>${f.text_lbl}</label>
+                        <textarea id="inp_text" rows="3" placeholder="..."></textarea>
                     </div>
-                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                    <button class="btn-main" onclick="generateQR()">${btnText}</button>
                 `;
             }
         }
@@ -497,7 +573,7 @@
         function generateQR() {
             const payload = getPayload();
             if (!payload) {
-                alert('Vui lòng nhập đầy đủ thông tin!');
+                alert(i18n[currentLang].empty_msg);
                 return;
             }
 
@@ -521,7 +597,7 @@
                 a.download = 'qrcode.png';
                 a.click();
             } else {
-                alert('Vui lòng tạo mã QR trước khi lưu!');
+                alert(i18n[currentLang].empty_msg);
             }
         }
 
@@ -534,12 +610,12 @@
                     url: payload || window.location.href
                 }).catch(() => {});
             } else {
-                alert('Thiết bị của bạn hỗ trợ lưu trực tiếp qua nút Lưu ảnh!');
+                alert('Saved directly!');
             }
         }
 
         // Initialize
-        renderForm();
+        updateUIStrings();
         setTimeout(() => {
             generateQR();
         }, 300);
