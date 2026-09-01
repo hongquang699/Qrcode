@@ -296,15 +296,17 @@ class QRCodeGUIApp:
             r3 = tk.Frame(self.input_container, bg="#ffffff")
             r3.pack(fill="x", pady=1)
             tk.Label(r3, text="Mã hóa:", font=("Segoe UI", 8, "bold"), bg="#ffffff", width=14, anchor="w").pack(side="left")
-            self.combo_wifi_sec = ttk.Combobox(r3, values=["WPA/WPA2/WPA3", "WEP", "Không mật khẩu (Open)"], state="readonly", font=("Segoe UI", 8))
+            self.combo_wifi_sec = ttk.Combobox(r3, values=["WPA/WPA2/WPA3", "Không mật khẩu (Open)", "WEP"], state="readonly", font=("Segoe UI", 8))
             self.combo_wifi_sec.current(0)
             self.combo_wifi_sec.pack(side="left", padx=(0, 8))
+            self.combo_wifi_sec.bind("<<ComboboxSelected>>", self.on_wifi_sec_changed)
 
             self.var_wifi_hidden = tk.BooleanVar(value=False)
             chk_hidden = tk.Checkbutton(r3, text="Mạng ẩn", variable=self.var_wifi_hidden, bg="#ffffff", font=("Segoe UI", 8))
             chk_hidden.pack(side="left")
 
         elif cat_id == "email":
+
             self.input_container.config(text=" ✉️ Soạn thư E-mail nhanh ")
             # Recipient
             r1 = tk.Frame(self.input_container, bg="#ffffff")
@@ -352,7 +354,26 @@ class QRCodeGUIApp:
         except Exception:
             messagebox.showwarning("Notice", "Clipboard is empty!")
 
+    def on_wifi_sec_changed(self, event=None):
+        choice = self.combo_wifi_sec.get()
+        if "Không" in choice or "Open" in choice:
+            self.entry_wifi_pass.delete(0, tk.END)
+            self.entry_wifi_pass.config(state="disabled")
+            self.lbl_security.config(
+                text="🔓 Mạng Wi-Fi mở (Không mật khẩu): Quét mã là tự động kết nối",
+                bg="#f0fdf4",
+                fg="#166534"
+            )
+        else:
+            self.entry_wifi_pass.config(state="normal")
+            self.lbl_security.config(
+                text="🔒 Wi-Fi có mật khẩu bảo mật (WPA/WPA2/WPA3 / WEP)",
+                bg="#f0fdf4",
+                fg="#166534"
+            )
+
     def audit_security(self, text):
+
         text = text.strip()
         if not text:
             self.lbl_security.config(text="🔒 100% Offline Processing | Real-Time Security Active", bg="#f0fdf4", fg="#166534")
@@ -415,7 +436,11 @@ class QRCodeGUIApp:
             elif "Không" in sec_choice or "Open" in sec_choice:
                 sec_type = "nopass"
             hidden = "true" if self.var_wifi_hidden.get() else "false"
-            return f"WIFI:T:{sec_type};S:{ssid};P:{pwd};H:{hidden};;"
+            if sec_type == "nopass":
+                return f"WIFI:T:nopass;S:{ssid};H:{hidden};;"
+            else:
+                return f"WIFI:T:{sec_type};S:{ssid};P:{pwd};H:{hidden};;"
+
 
         elif cid == "email":
             to = self.entry_email_to.get().strip()

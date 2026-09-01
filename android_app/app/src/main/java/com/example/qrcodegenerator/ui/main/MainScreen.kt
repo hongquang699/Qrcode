@@ -97,9 +97,14 @@ fun MainScreen(
             }
             QRType.WIFI -> {
                 if (wifiSsid.isNotBlank()) {
-                    "WIFI:T:$wifiSecurity;S:${wifiSsid.trim()};P:${wifiPassword};H:${if (wifiHidden) "true" else "false"};;"
+                    if (wifiSecurity == "nopass") {
+                        "WIFI:T:nopass;S:${wifiSsid.trim()};H:${if (wifiHidden) "true" else "false"};;"
+                    } else {
+                        "WIFI:T:$wifiSecurity;S:${wifiSsid.trim()};P:${wifiPassword};H:${if (wifiHidden) "true" else "false"};;"
+                    }
                 } else ""
             }
+
             QRType.EMAIL -> {
                 if (emailTo.isNotBlank()) {
                     val encSub = URLEncoder.encode(emailSubject.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")
@@ -334,36 +339,76 @@ fun MainScreen(
                                 onValueChange = { wifiSsid = it },
                                 modifier = Modifier.fillMaxWidth(),
                                 label = { Text("Tên mạng Wi-Fi (SSID)") },
+                                placeholder = { Text("VD: WiFi-Cong-Cong, Home-WiFi...") },
                                 shape = RoundedCornerShape(12.dp)
                             )
-                            OutlinedTextField(
-                                value = wifiPassword,
-                                onValueChange = { wifiPassword = it },
-                                modifier = Modifier.fillMaxWidth(),
-                                label = { Text("Mật khẩu Wi-Fi") },
-                                shape = RoundedCornerShape(12.dp)
+
+                            Text(
+                                text = "Loại bảo mật Wi-Fi:",
+                                fontWeight = FontWeight.SemiBold,
+                                fontSize = 13.sp,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
+
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.SpaceBetween
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable { wifiSecurity = "WPA" }
+                                ) {
                                     RadioButton(
                                         selected = wifiSecurity == "WPA",
                                         onClick = { wifiSecurity = "WPA" }
                                     )
-                                    Text("WPA/WPA2/WPA3", fontSize = 12.sp)
+                                    Text("Có mật khẩu (WPA/WPA2/WPA3)", fontSize = 12.sp)
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                            }
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable { wifiSecurity = "nopass" }
+                                ) {
                                     RadioButton(
                                         selected = wifiSecurity == "nopass",
                                         onClick = { wifiSecurity = "nopass" }
                                     )
-                                    Text("Mở (Open)", fontSize = 12.sp)
+                                    Text("Không có mật khẩu (Open / Mạng mở)", fontSize = 12.sp, fontWeight = if (wifiSecurity == "nopass") FontWeight.Bold else FontWeight.Normal)
+                                }
+                            }
+
+                            if (wifiSecurity != "nopass") {
+                                OutlinedTextField(
+                                    value = wifiPassword,
+                                    onValueChange = { wifiPassword = it },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    label = { Text("Mật khẩu Wi-Fi") },
+                                    placeholder = { Text("Nhập mật khẩu Wi-Fi...") },
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                            } else {
+                                Surface(
+                                    color = Color(0xFFF0FDF4),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "🔓 Mạng Wi-Fi mở (Không mật khẩu): Thiết bị quét mã sẽ tự động kết nối trực tiếp vào Wi-Fi.",
+                                        color = Color(0xFF166534),
+                                        fontSize = 12.sp,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
                                 }
                             }
                         }
+
                         QRType.EMAIL -> {
                             OutlinedTextField(
                                 value = emailTo,
