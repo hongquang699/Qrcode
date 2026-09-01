@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>QR Code Generator - by Hong Quang</title>
+
+    <!-- Apple iOS Web App Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="QRCode">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="app_icon.png">
+
+    <!-- QR Code JS Engine (Offline Ready) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-bg: #eff6ff;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-sec: #64748b;
+            --border: #e2e8f0;
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            padding: env(safe-area-inset-top, 20px) 16px env(safe-area-inset-bottom, 20px) 16px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .header {
+            text-align: center;
+            padding: 10px 0 4px 0;
+        }
+
+        .header h1 {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header p {
+            font-size: 12px;
+            color: var(--primary);
+            font-weight: 600;
+            margin-top: 2px;
+        }
+
+        /* 6 Categories Grid */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .cat-card {
+            background: var(--card-bg);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .cat-card.active {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.12);
+        }
+
+        .cat-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .cat-card.active .cat-icon {
+            background: #dbeafe;
+        }
+
+        .cat-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cat-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 2px;
+        }
+
+        .cat-card.active .cat-name {
+            color: var(--primary);
+        }
+
+        .cat-desc {
+            font-size: 10px;
+            color: var(--text-sec);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cat-arrow {
+            font-size: 12px;
+            color: #94a3b8;
+        }
+
+        .cat-card.active .cat-arrow {
+            color: var(--primary);
+        }
+
+        /* Input Form Card */
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 16px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            background: #f8fafc;
+            color: var(--text);
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input:focus, textarea:focus {
+            border-color: var(--primary);
+            background: #ffffff;
+        }
+
+        .btn-main {
+            width: 100%;
+            background: var(--primary);
+            color: white;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+            transition: transform 0.1s, background 0.2s;
+        }
+
+        .btn-main:active {
+            transform: scale(0.98);
+            background: #1d4ed8;
+        }
+
+        /* Preview Card */
+        .preview-card {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+        }
+
+        #qrcode {
+            padding: 12px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 220px;
+            min-width: 220px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 10px;
+            width: 100%;
+        }
+
+        .btn-save {
+            flex: 1;
+            background: #16a34a;
+            color: white;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-share {
+            flex: 1;
+            background: #eff6ff;
+            color: var(--primary);
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 13px;
+            border: 1px solid #bfdbfe;
+            cursor: pointer;
+        }
+
+        .badge-security {
+            background: #f0fdf4;
+            color: #166534;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 11px;
+            color: var(--text-sec);
+            padding: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span>📱</span> QR Code Generator</h1>
+            <p>Created by Hong Quang • Apple iOS Edition</p>
+        </div>
+
+        <div class="badge-security">
+            <span>🔒</span>
+            <span>100% Offline Processing • Chuẩn ISO/IEC 18004</span>
+        </div>
+
+        <div>
+            <div class="section-title">Chọn loại mã QR:</div>
+            <div class="categories-grid">
+                <div class="cat-card active" onclick="selectCategory('url')">
+                    <div class="cat-icon">🌐</div>
+                    <div class="cat-info">
+                        <div class="cat-name">URL</div>
+                        <div class="cat-desc">Mở trang web</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+
+                <div class="cat-card" onclick="selectCategory('phone')">
+                    <div class="cat-icon">📞</div>
+                    <div class="cat-info">
+                        <div class="cat-name">Điện thoại</div>
+                        <div class="cat-desc">Gọi số điện thoại</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+
+                <div class="cat-card" onclick="selectCategory('wifi')">
+                    <div class="cat-icon">📶</div>
+                    <div class="cat-info">
+                        <div class="cat-name">Wi-Fi</div>
+                        <div class="cat-desc">Kết nối Wi-Fi</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+
+                <div class="cat-card" onclick="selectCategory('email')">
+                    <div class="cat-icon">✉️</div>
+                    <div class="cat-info">
+                        <div class="cat-name">E-mail</div>
+                        <div class="cat-desc">Bản thảo email</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+
+                <div class="cat-card" onclick="selectCategory('pdf')">
+                    <div class="cat-icon">📄</div>
+                    <div class="cat-info">
+                        <div class="cat-name">PDF</div>
+                        <div class="cat-desc">Chia sẻ PDF</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+
+                <div class="cat-card" onclick="selectCategory('text')">
+                    <div class="cat-icon">Aa</div>
+                    <div class="cat-info">
+                        <div class="cat-name">Văn bản</div>
+                        <div class="cat-desc">Thông điệp tùy chỉnh</div>
+                    </div>
+                    <div class="cat-arrow">➔</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" id="form-container">
+            <!-- Dynamic Form will be injected here -->
+        </div>
+
+        <div class="card preview-card">
+            <div id="qrcode"></div>
+            <div class="btn-row">
+                <button class="btn-save" onclick="saveQRCode()">💾 Lưu ảnh (Save)</button>
+                <button class="btn-share" onclick="shareQRCode()">📤 Chia sẻ (Share)</button>
+            </div>
+        </div>
+
+        <div class="footer">
+            ✨ Created with ❤️ by <strong>Hong Quang</strong><br>
+            Tương thích iPhone, iPad, Android & Windows
+        </div>
+    </div>
+
+    <script>
+        let currentCat = 'url';
+        let qrcodeObj = null;
+
+        function selectCategory(cat) {
+            currentCat = cat;
+            document.querySelectorAll('.cat-card').forEach(el => el.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            renderForm();
+        }
+
+        function renderForm() {
+            const container = document.getElementById('form-container');
+            if (currentCat === 'url') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>🌐 Nhập Website URL:</label>
+                        <input type="url" id="inp_url" value="https://" placeholder="https://example.com">
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            } else if (currentCat === 'phone') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>📞 Nhập Số điện thoại:</label>
+                        <input type="tel" id="inp_phone" placeholder="0912345678 hoặc +84...">
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            } else if (currentCat === 'wifi') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>📶 Tên Wi-Fi (SSID):</label>
+                        <input type="text" id="inp_wifi_ssid" placeholder="VD: MyHome-WiFi">
+                    </div>
+                    <div class="form-group">
+                        <label>Loại bảo mật:</label>
+                        <select id="inp_wifi_sec" onchange="toggleWifiPass()">
+                            <option value="WPA">Có mật khẩu (WPA/WPA2/WPA3)</option>
+                            <option value="nopass">Không có mật khẩu (Open)</option>
+                            <option value="WEP">WEP</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="wifi_pass_group">
+                        <label>Mật khẩu Wi-Fi:</label>
+                        <input type="password" id="inp_wifi_pass" placeholder="Nhập mật khẩu...">
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            } else if (currentCat === 'email') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>✉️ Email người nhận:</label>
+                        <input type="email" id="inp_email_to" placeholder="contact@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>Tiêu đề thư:</label>
+                        <input type="text" id="inp_email_sub" placeholder="Tiêu đề...">
+                    </div>
+                    <div class="form-group">
+                        <label>Nội dung thư:</label>
+                        <input type="text" id="inp_email_body" placeholder="Nội dung...">
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            } else if (currentCat === 'pdf') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>📄 Link file PDF / Google Drive:</label>
+                        <input type="url" id="inp_pdf" value="https://drive.google.com/" placeholder="https://drive.google.com/...">
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            } else if (currentCat === 'text') {
+                container.innerHTML = `
+                    <div class="form-group">
+                        <label>📝 Nhập nội dung văn bản:</label>
+                        <textarea id="inp_text" rows="3" placeholder="Nhập tin nhắn bất kỳ..."></textarea>
+                    </div>
+                    <button class="btn-main" onclick="generateQR()">⚡ TẠO MÃ QR</button>
+                `;
+            }
+        }
+
+        function toggleWifiPass() {
+            const sec = document.getElementById('inp_wifi_sec').value;
+            const passGroup = document.getElementById('wifi_pass_group');
+            if (sec === 'nopass') {
+                passGroup.style.display = 'none';
+            } else {
+                passGroup.style.display = 'flex';
+            }
+        }
+
+        function getPayload() {
+            if (currentCat === 'url') {
+                return document.getElementById('inp_url').value.trim();
+            } else if (currentCat === 'phone') {
+                const p = document.getElementById('inp_phone').value.trim().replace(/[\s-]/g, '');
+                return p ? `tel:${p}` : '';
+            } else if (currentCat === 'wifi') {
+                const ssid = document.getElementById('inp_wifi_ssid').value.trim();
+                const sec = document.getElementById('inp_wifi_sec').value;
+                const pass = document.getElementById('inp_wifi_pass') ? document.getElementById('inp_wifi_pass').value : '';
+                if (!ssid) return '';
+                return sec === 'nopass' ? `WIFI:T:nopass;S:${ssid};;` : `WIFI:T:${sec};S:${ssid};P:${pass};;`;
+            } else if (currentCat === 'email') {
+                const to = document.getElementById('inp_email_to').value.trim();
+                const sub = encodeURIComponent(document.getElementById('inp_email_sub').value.trim());
+                const body = encodeURIComponent(document.getElementById('inp_email_body').value.trim());
+                return to ? `mailto:${to}?subject=${sub}&body=${body}` : '';
+            } else if (currentCat === 'pdf') {
+                return document.getElementById('inp_pdf').value.trim();
+            } else if (currentCat === 'text') {
+                return document.getElementById('inp_text').value.trim();
+            }
+            return '';
+        }
+
+        function generateQR() {
+            const payload = getPayload();
+            if (!payload) {
+                alert('Vui lòng nhập đầy đủ thông tin!');
+                return;
+            }
+
+            const qrContainer = document.getElementById('qrcode');
+            qrContainer.innerHTML = '';
+            qrcodeObj = new QRCode(qrContainer, {
+                text: payload,
+                width: 200,
+                height: 200,
+                colorDark: "#000000",
+                colorLight: "#ffffff",
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
+
+        function saveQRCode() {
+            const img = document.querySelector('#qrcode img');
+            if (img && img.src) {
+                const a = document.createElement('a');
+                a.href = img.src;
+                a.download = 'qrcode.png';
+                a.click();
+            } else {
+                alert('Vui lòng tạo mã QR trước khi lưu!');
+            }
+        }
+
+        function shareQRCode() {
+            if (navigator.share) {
+                const payload = getPayload();
+                navigator.share({
+                    title: 'QR Code Generator',
+                    text: 'Mã QR tạo bởi Hong Quang',
+                    url: payload || window.location.href
+                }).catch(() => {});
+            } else {
+                alert('Thiết bị của bạn hỗ trợ lưu trực tiếp qua nút Lưu ảnh!');
+            }
+        }
+
+        // Initialize
+        renderForm();
+        setTimeout(() => {
+            generateQR();
+        }, 300);
+    </script>
+</body>
+</html>

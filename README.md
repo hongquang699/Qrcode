@@ -62,7 +62,19 @@ Simply double-click:
 
 The Android application is located in the `android_app/` folder.
 - Built with Kotlin, Jetpack Compose, Material 3, Biometrics, and ZXing Core.
-- Enforces strict network security, Scoped Storage, and `FLAG_SECURE` screen protection.
+- Pre-built binary: [**`QRCodeGenerator.apk`**](file:///c:/Users/HOA%20BINH/QRcode/QRCodeGenerator.apk)
+
+---
+
+### Method 3: Apple iOS App (`ios_app`) & iPhone Web App
+
+1. **Native SwiftUI iOS Project**:
+   - Located in the `ios_app/` folder.
+   - Built with modern **SwiftUI**, Apple **CoreImage (`CIQRCodeGenerator`)**, and **Face ID / Touch ID** (`LocalAuthentication`).
+2. **Instant iPhone Installation (Web App / PWA)**:
+   - Open [`index.html`](file:///c:/Users/HOA%20BINH/QRcode/index.html) in Safari on your iPhone/iPad.
+   - Tap **Share ➔ "Add to Home Screen" (Thêm vào MH chính)** to get an instant native app icon on your iPhone home screen!
+
 
 ---
 
