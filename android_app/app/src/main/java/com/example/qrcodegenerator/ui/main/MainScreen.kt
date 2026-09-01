@@ -1,9 +1,9 @@
 package com.example.qrcodegenerator.ui.main
 
-import android.app.Activity
 import android.content.ClipboardManager
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -14,10 +14,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,6 +33,8 @@ import androidx.navigation3.runtime.NavKey
 import com.example.qrcodegenerator.util.QRCodeHelper
 import com.example.qrcodegenerator.util.RiskLevel
 import com.example.qrcodegenerator.util.SecurityHelper
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 data class ColorOption(val name: String, val color: Color, val hex: String)
 
@@ -49,6 +47,15 @@ val colorPresets = listOf(
     ColorOption("Crimson", Color(0xFFDC2626), "#dc2626")
 )
 
+enum class QRType(val title: String, val desc: String, val iconEmoji: String) {
+    URL("URL", "Tạo mã QR mở trang web.", "🌐"),
+    PHONE("Điện thoại", "Tạo mã QR để gọi số điện thoại.", "📱"),
+    WIFI("Wi-Fi", "Tạo mã QR để kết nối Wi-Fi.", "📶"),
+    EMAIL("E-mail", "Tạo mã QR bắt đầu bản thảo email.", "✉️"),
+    PDF("PDF", "Tạo mã QR để chia sẻ PDF.", "📄"),
+    TEXT("Văn bản", "Tạo mã QR với một thông điệp tùy chỉnh.", "Aa")
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
@@ -58,21 +65,61 @@ fun MainScreen(
     val context = LocalContext.current
     val activity = context as? FragmentActivity
 
-    var inputText by remember { mutableStateOf("") }
+    var selectedType by remember { mutableStateOf(QRType.URL) }
     var selectedColor by remember { mutableStateOf(colorPresets[0]) }
     var qrBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var isSecureScreenEnabled by remember { mutableStateOf(false) }
     var isAppLocked by remember { mutableStateOf(false) }
 
-    // Live URL Security Audit
-    val securityResult = remember(inputText) {
-        SecurityHelper.auditInput(inputText)
+    // Input States
+    var urlInput by remember { mutableStateOf("https://") }
+    var phoneInput by remember { mutableStateOf("") }
+    var wifiSsid by remember { mutableStateOf("") }
+    var wifiPassword by remember { mutableStateOf("") }
+    var wifiSecurity by remember { mutableStateOf("WPA") }
+    var wifiHidden by remember { mutableStateOf(false) }
+    var emailTo by remember { mutableStateOf("") }
+    var emailSubject by remember { mutableStateOf("") }
+    var emailBody by remember { mutableStateOf("") }
+    var pdfInput by remember { mutableStateOf("https://drive.google.com/") }
+    var textInput by remember { mutableStateOf("") }
+
+    // Calculated Payload
+    val currentPayload = remember(
+        selectedType, urlInput, phoneInput, wifiSsid, wifiPassword, wifiSecurity, wifiHidden,
+        emailTo, emailSubject, emailBody, pdfInput, textInput
+    ) {
+        when (selectedType) {
+            QRType.URL -> urlInput.trim()
+            QRType.PHONE -> {
+                val clean = phoneInput.replace(" ", "").replace("-", "").trim()
+                if (clean.isNotEmpty()) "tel:$clean" else ""
+            }
+            QRType.WIFI -> {
+                if (wifiSsid.isNotBlank()) {
+                    "WIFI:T:$wifiSecurity;S:${wifiSsid.trim()};P:${wifiPassword};H:${if (wifiHidden) "true" else "false"};;"
+                } else ""
+            }
+            QRType.EMAIL -> {
+                if (emailTo.isNotBlank()) {
+                    val encSub = URLEncoder.encode(emailSubject.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")
+                    val encBody = URLEncoder.encode(emailBody.trim(), StandardCharsets.UTF_8.toString()).replace("+", "%20")
+                    "mailto:${emailTo.trim()}?subject=$encSub&body=$encBody"
+                } else ""
+            }
+            QRType.PDF -> pdfInput.trim()
+            QRType.TEXT -> textInput.trim()
+        }
+    }
+
+    // Live Security Audit
+    val securityResult = remember(currentPayload) {
+        SecurityHelper.auditInput(currentPayload)
     }
 
     val scrollState = rememberScrollState()
 
     if (isAppLocked) {
-        // App Lock Overlay Screen
         Surface(
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
@@ -84,12 +131,7 @@ fun MainScreen(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-                Icon(
-                    imageVector = Icons.Default.Lock,
-                    contentDescription = "Locked",
-                    modifier = Modifier.size(72.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Text(text = "🔒", fontSize = 64.sp)
                 Spacer(modifier = Modifier.height(16.dp))
                 Text(
                     text = "Application Locked",
@@ -137,7 +179,7 @@ fun MainScreen(
                 title = {
                     Column {
                         Text(
-                            text = "🛡️ QR Code Generator",
+                            text = "📱 QR Code Generator",
                             fontWeight = FontWeight.Bold,
                             fontSize = 20.sp
                         )
@@ -164,71 +206,214 @@ fun MainScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Security Badge Banner
-            Card(
+            // Category Cards Grid (3 Rows x 2 Columns)
+            Text(
+                text = "✨ Chọn loại mã QR:",
+                fontWeight = FontWeight.Bold,
+                fontSize = 16.sp,
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = Color(0xFFF0FDF4)
-                )
-            ) {
+                color = MaterialTheme.colorScheme.onBackground
+            )
+
+            val qrTypes = QRType.values()
+            for (i in qrTypes.indices step 2) {
                 Row(
-                    modifier = Modifier.padding(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text("🔒", fontSize = 20.sp)
-                    Column {
-                        Text(
-                            text = "100% Offline & Zero-Knowledge Security",
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = Color(0xFF166534)
-                        )
-                        Text(
-                            text = "Data is encrypted in memory & never transmitted externally.",
-                            fontSize = 11.sp,
-                            color = Color(0xFF15803D)
-                        )
+                    for (j in 0..1) {
+                        if (i + j < qrTypes.size) {
+                            val type = qrTypes[i + j]
+                            val isSelected = selectedType == type
+                            Card(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .clickable {
+                                        selectedType = type
+                                    }
+                                    .border(
+                                        width = if (isSelected) 2.dp else 1.dp,
+                                        color = if (isSelected) Color(0xFF2563EB) else Color(0xFFE2E8F0),
+                                        shape = RoundedCornerShape(16.dp)
+                                    ),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (isSelected) Color(0xFFF8FAFC) else Color.White
+                                ),
+                                elevation = CardDefaults.cardElevation(defaultElevation = if (isSelected) 3.dp else 1.dp)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .padding(12.dp)
+                                        .fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(40.dp)
+                                            .background(
+                                                color = if (isSelected) Color(0xFFDBEAFE) else Color(0xFFF1F5F9),
+                                                shape = RoundedCornerShape(10.dp)
+                                            ),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(text = type.iconEmoji, fontSize = 20.sp)
+                                    }
+
+                                    Spacer(modifier = Modifier.width(10.dp))
+
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = type.title,
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 14.sp,
+                                            color = if (isSelected) Color(0xFF2563EB) else Color(0xFF1E293B)
+                                        )
+                                        Text(
+                                            text = type.desc,
+                                            fontSize = 11.sp,
+                                            lineHeight = 14.sp,
+                                            color = Color(0xFF64748B)
+                                        )
+                                    }
+
+                                    Text(
+                                        text = "➔",
+                                        fontSize = 14.sp,
+                                        color = if (isSelected) Color(0xFF2563EB) else Color(0xFF94A3B8)
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
             }
 
-            // Input Card
+            // Input Card based on selected category
             Card(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = "🔗 Enter or Paste URL / Text:",
-                        fontWeight = FontWeight.SemiBold,
-                        fontSize = 15.sp
+                        text = "${selectedType.iconEmoji} Nhập thông tin (${selectedType.title}):",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp,
+                        color = MaterialTheme.colorScheme.primary
                     )
 
-                    OutlinedTextField(
-                        value = inputText,
-                        onValueChange = { inputText = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("https://example.com or confidential text...") },
-                        shape = RoundedCornerShape(12.dp),
-                        trailingIcon = {
-                            if (inputText.isNotEmpty()) {
-                                IconButton(onClick = { inputText = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                    when (selectedType) {
+                        QRType.URL -> {
+                            OutlinedTextField(
+                                value = urlInput,
+                                onValueChange = { urlInput = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("https://example.com") },
+                                label = { Text("Website URL") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        QRType.PHONE -> {
+                            OutlinedTextField(
+                                value = phoneInput,
+                                onValueChange = { phoneInput = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                placeholder = { Text("0912345678 hoặc +84...") },
+                                label = { Text("Số điện thoại") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        QRType.WIFI -> {
+                            OutlinedTextField(
+                                value = wifiSsid,
+                                onValueChange = { wifiSsid = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Tên mạng Wi-Fi (SSID)") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            OutlinedTextField(
+                                value = wifiPassword,
+                                onValueChange = { wifiPassword = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Mật khẩu Wi-Fi") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = wifiSecurity == "WPA",
+                                        onClick = { wifiSecurity = "WPA" }
+                                    )
+                                    Text("WPA/WPA2/WPA3", fontSize = 12.sp)
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    RadioButton(
+                                        selected = wifiSecurity == "nopass",
+                                        onClick = { wifiSecurity = "nopass" }
+                                    )
+                                    Text("Mở (Open)", fontSize = 12.sp)
                                 }
                             }
-                        },
-                        minLines = 2,
-                        maxLines = 4
-                    )
+                        }
+                        QRType.EMAIL -> {
+                            OutlinedTextField(
+                                value = emailTo,
+                                onValueChange = { emailTo = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Địa chỉ Email người nhận") },
+                                placeholder = { Text("contact@example.com") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            OutlinedTextField(
+                                value = emailSubject,
+                                onValueChange = { emailSubject = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Tiêu đề thư (Subject)") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            OutlinedTextField(
+                                value = emailBody,
+                                onValueChange = { emailBody = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Nội dung thư") },
+                                minLines = 2,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        QRType.PDF -> {
+                            OutlinedTextField(
+                                value = pdfInput,
+                                onValueChange = { pdfInput = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Đường link file PDF / Google Drive") },
+                                placeholder = { Text("https://drive.google.com/file/d/...") },
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                        QRType.TEXT -> {
+                            OutlinedTextField(
+                                value = textInput,
+                                onValueChange = { textInput = it },
+                                modifier = Modifier.fillMaxWidth(),
+                                label = { Text("Nội dung văn bản") },
+                                placeholder = { Text("Nhập thông điệp bất kỳ...") },
+                                minLines = 3,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                        }
+                    }
 
-                    // URL Security Auditor Result
-                    if (inputText.isNotBlank()) {
+                    // Security check advisory
+                    if (currentPayload.isNotBlank()) {
                         when (securityResult.riskLevel) {
                             RiskLevel.SAFE -> {
                                 Surface(
@@ -237,7 +422,7 @@ fun MainScreen(
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "✅ URL Verified: Secure HTTPS protocol",
+                                        text = "✅ Đã xác thực bảo mật chuẩn ISO/IEC",
                                         color = Color(0xFF166534),
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(8.dp)
@@ -252,7 +437,7 @@ fun MainScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(
-                                            text = "⚠️ Security Advisory:",
+                                            text = "⚠️ Lưu ý bảo mật:",
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF854D0E),
                                             fontSize = 12.sp
@@ -271,7 +456,7 @@ fun MainScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(8.dp)) {
                                         Text(
-                                            text = "🚨 High Risk Warning:",
+                                            text = "🚨 Cảnh báo liên kết rủi ro:",
                                             fontWeight = FontWeight.Bold,
                                             color = Color(0xFF991B1B),
                                             fontSize = 12.sp
@@ -295,29 +480,32 @@ fun MainScreen(
                                 val clipData = clipboard.primaryClip
                                 if (clipData != null && clipData.itemCount > 0) {
                                     val pasteText = clipData.getItemAt(0).text?.toString() ?: ""
-                                    if (pasteText.isNotBlank()) {
-                                        inputText = pasteText
-                                        Toast.makeText(context, "Securely pasted from clipboard!", Toast.LENGTH_SHORT).show()
+                                    when (selectedType) {
+                                        QRType.URL -> urlInput = pasteText
+                                        QRType.PHONE -> phoneInput = pasteText
+                                        QRType.PDF -> pdfInput = pasteText
+                                        QRType.TEXT -> textInput = pasteText
+                                        QRType.EMAIL -> emailTo = pasteText
+                                        QRType.WIFI -> wifiSsid = pasteText
                                     }
-                                } else {
-                                    Toast.makeText(context, "Clipboard is empty", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Đã dán từ bộ nhớ tạm!", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(1f),
                             shape = RoundedCornerShape(10.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                         ) {
-                            Text("📋 Paste")
+                            Text("📋 Dán")
                         }
 
                         Button(
                             onClick = {
-                                if (inputText.isBlank()) {
-                                    Toast.makeText(context, "Please enter a URL or text!", Toast.LENGTH_SHORT).show()
+                                if (currentPayload.isBlank()) {
+                                    Toast.makeText(context, "Vui lòng nhập đầy đủ thông tin!", Toast.LENGTH_SHORT).show()
                                     return@Button
                                 }
                                 val bmp = QRCodeHelper.generateQRCodeBitmap(
-                                    content = inputText.trim(),
+                                    content = currentPayload,
                                     width = 600,
                                     height = 600,
                                     fgColor = selectedColor.color.toArgb(),
@@ -325,21 +513,21 @@ fun MainScreen(
                                 )
                                 if (bmp != null) {
                                     qrBitmap = bmp
-                                    Toast.makeText(context, "QR Code Generated Securely!", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Tạo mã QR thành công!", Toast.LENGTH_SHORT).show()
                                 } else {
-                                    Toast.makeText(context, "Failed to generate QR Code", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "Lỗi tạo mã QR", Toast.LENGTH_SHORT).show()
                                 }
                             },
                             modifier = Modifier.weight(2f),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("⚡ Generate QR")
+                            Text("⚡ TẠO MÃ QR")
                         }
                     }
 
                     // Color selection
                     Text(
-                        text = "🎨 Color Theme:",
+                        text = "🎨 Tùy chỉnh màu sắc mã QR:",
                         fontWeight = FontWeight.Medium,
                         fontSize = 13.sp,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -359,9 +547,9 @@ fun MainScreen(
                                     .background(colorOpt.color)
                                     .clickable {
                                         selectedColor = colorOpt
-                                        if (inputText.isNotBlank()) {
+                                        if (currentPayload.isNotBlank()) {
                                             qrBitmap = QRCodeHelper.generateQRCodeBitmap(
-                                                content = inputText.trim(),
+                                                content = currentPayload,
                                                 width = 600,
                                                 height = 600,
                                                 fgColor = colorOpt.color.toArgb(),
@@ -414,16 +602,16 @@ fun MainScreen(
                                 onClick = {
                                     val success = QRCodeHelper.saveBitmapToGallery(context, qrBitmap!!)
                                     if (success) {
-                                        Toast.makeText(context, "Saved securely to Pictures/QRCodeGenerator!", Toast.LENGTH_LONG).show()
+                                        Toast.makeText(context, "Đã lưu vào thư mục Pictures/QRCodeGenerator!", Toast.LENGTH_LONG).show()
                                     } else {
-                                        Toast.makeText(context, "Failed to save image", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, "Không thể lưu ảnh", Toast.LENGTH_SHORT).show()
                                     }
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
                                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF16A34A))
                             ) {
-                                Text("💾 Save PNG")
+                                Text("💾 Lưu PNG")
                             }
 
                             FilledTonalButton(
@@ -433,20 +621,18 @@ fun MainScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp)
                             ) {
-                                Icon(Icons.Default.Share, contentDescription = "Share", modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Share")
+                                Text("📤 Chia sẻ")
                             }
                         }
                     } else {
                         Box(
                             modifier = Modifier
-                                .size(240.dp)
+                                .size(220.dp)
                                 .background(Color(0xFFF1F5F9), RoundedCornerShape(12.dp)),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No QR code yet\nEnter URL above and tap\n'Generate QR'",
+                                text = "Chưa có mã QR\nChọn loại & bấm 'TẠO MÃ QR'",
                                 textAlign = TextAlign.Center,
                                 color = Color(0xFF94A3B8),
                                 fontSize = 14.sp
@@ -467,12 +653,11 @@ fun MainScreen(
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
-                        text = "⚙️ Privacy & Security Controls",
+                        text = "⚙️ Cài đặt Quyền riêng tư & Bảo mật",
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
 
-                    // Screenshot Protection Toggle
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -485,7 +670,7 @@ fun MainScreen(
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "Kích hoạt FLAG_SECURE chống quay chụp lén",
+                                text = "Kích hoạt FLAG_SECURE bảo vệ thông tin",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -508,7 +693,6 @@ fun MainScreen(
 
                     HorizontalDivider()
 
-                    // App Lock / Biometric Lock
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -516,12 +700,12 @@ fun MainScreen(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Khóa ứng dụng (Biometrics)",
+                                text = "Khóa ứng dụng (Sinh trắc học)",
                                 fontWeight = FontWeight.Medium,
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "Yêu cầu vân tay / Face ID / mã PIN thiết bị",
+                                text = "Yêu cầu vân tay / Face ID / mã PIN",
                                 fontSize = 11.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -536,7 +720,7 @@ fun MainScreen(
                                             subtitle = "Khóa ứng dụng với sinh trắc học",
                                             onSuccess = {
                                                 isAppLocked = true
-                                                Toast.makeText(context, "Ứng dụng đã được khóa bảo vệ!", Toast.LENGTH_SHORT).show()
+                                                Toast.makeText(context, "Ứng dụng đã được khóa!", Toast.LENGTH_SHORT).show()
                                             },
                                             onError = { err ->
                                                 Toast.makeText(context, err, Toast.LENGTH_SHORT).show()
@@ -548,8 +732,7 @@ fun MainScreen(
                                     }
                                 }
                             },
-                            shape = RoundedCornerShape(8.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
+                            shape = RoundedCornerShape(8.dp)
                         ) {
                             Text("🔒 Khóa ngay", fontSize = 12.sp)
                         }
@@ -559,7 +742,7 @@ fun MainScreen(
 
             // Footer
             Text(
-                text = "✨ Created by Hong Quang\nISO/IEC 18004 Standard Compliant • TLS 1.3 Strict",
+                text = "✨ Created with ❤️ by Hong Quang\nISO/IEC 18004 Standard Compliant • TLS 1.3 Strict",
                 textAlign = TextAlign.Center,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
